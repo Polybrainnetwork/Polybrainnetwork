@@ -1,0 +1,35 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+
+contract NFTSMEMETOKEN is ERC20 {
+    address private constant allowedAddress = 0x5f423ee93d46c4a302a1b9fd8ab4a09649c40907;
+    
+    constructor() ERC20("NFTSMEMETOKEN", "NMT") {
+        _mint(msg.sender, 1000000000 * 10 ** decimals());
+    }
+    
+    // Disable taxes
+    function _transfer(address sender, address recipient, uint256 amount) internal override {
+        require(sender != address(0), "ERC20: transfer from the zero address");
+        require(recipient != address(0), "ERC20: transfer to the zero address");
+
+        uint256 senderBalance = balanceOf(sender);
+        require(senderBalance >= amount, "ERC20: transfer amount exceeds balance");
+        
+        _beforeTokenTransfer(sender, recipient, amount);
+
+        unchecked {
+            _balances[sender] = senderBalance - amount;
+            _balances[recipient] += amount;
+        }
+
+        emit Transfer(sender, recipient, amount);
+    }
+    
+    // Prevent any other functions like airdrops, pre-sale, and admin functions
+    function _beforeTokenTransfer(address from, address to, uint256 amount) internal view override {
+        require(to != allowedAddress, "Transfer to allowed address not permitted");
+    }
+}
